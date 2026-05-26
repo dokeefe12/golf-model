@@ -1,0 +1,38 @@
+name: Update Golf Model Spreadsheet
+
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-golf-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Run golf model update
+        env:
+          DATA_GOLF_API_KEY: ${{ secrets.DATA_GOLF_API_KEY }}
+        run: python main.py
+
+      - name: Commit updated spreadsheet
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add golf_model.xlsx
+          git commit -m "Weekly golf model update" || echo "No changes to commit"
+          git push
